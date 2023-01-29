@@ -1,3 +1,4 @@
+from itertools import product
 from random import choice
 
 from containers import Square, Tile
@@ -23,10 +24,14 @@ class Agent:
 
     def order(self) -> int:
         return self.color.order()
+    
+    def score(self, gamestate: GameState) -> int:
+        return 0
 
+    # Must be overridden
     def move(self, gamestate: GameState, moveset: dict[tuple[int], GameState]
             ) -> Square:
-        pass
+        return Square(-1, -1)
 
 
 class Player(Agent):
@@ -67,6 +72,29 @@ class Level1(Agent):
     def move(self, gamestate, moveset):
         scores = [
             [gs.count()[self.order()], sq]
+            for sq, gs in moveset.items()
+        ]
+        scores.sort(reverse=True)
+        return Square(*scores[0][1])
+
+
+class Level2(Agent):
+    def __init__(self, playernumber):
+        super().__init__(playernumber, "Sudowoodo", "Level 2 AI")
+    
+    def score(self, gamestate):
+        # Center, Edge, Corner
+        multiplier = [1, 2, 4]
+        total = 0
+        for r, c in product(range(8), repeat=2):
+            m = multiplier[int(r == 0 or r == 7) + int(c == 0 or c == 7)]
+            if gamestate.at(r, c) == self.color:
+                total += m
+        return total
+
+    def move(self, gamestate, moveset):
+        scores = [
+            [self.score(gs), sq]
             for sq, gs in moveset.items()
         ]
         scores.sort(reverse=True)

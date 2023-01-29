@@ -1,7 +1,7 @@
 from itertools import product
 from random import shuffle
 
-from ai_agents import Agent, Player, Level0, Level1
+from ai_agents import Agent, Player, Level0, Level1, Level2
 from containers import Square, Tile
 from game_state import GameState
 
@@ -28,6 +28,10 @@ class InputManager:
             "1": {
                 "desc": "Level 1 AI (most tiles)",
                 "constructor": Level1
+            },
+            "2": {
+                "desc": "Level 2 AI (weighted most tiles)",
+                "constructor": Level2
             },
         }
         print("Who's playing?")
