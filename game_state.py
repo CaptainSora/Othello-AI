@@ -1,44 +1,9 @@
 from collections import deque
 from dataclasses import dataclass
-from enum import Enum
 from typing import Self
 from itertools import product
 
-
-class Tile(Enum):
-    OPEN = 0
-    ADJ = 1
-    BLACK = 2
-    WHITE = 3
-
-    def __str__(self) -> str:
-        return " ·OX"[self.value]
-    
-    def other(self) -> Self:
-        return [self.OPEN, self.ADJ, self.WHITE, self.BLACK][self.value]
-
-
-@dataclass
-class Square:
-    r: int
-    c: int
-
-    def num(self) -> int:
-        return 8 * self.r + self.c
-    
-    def add(self, other: Self) -> None:
-        self.r += other.r
-        self.c += other.c
-    
-    def invert(self) -> None:
-        self.r *= -1
-        self.c *= -1
-    
-    def valid(self) -> bool:
-        return (0 <= self.r <= 7) and (0 <= self.c <= 7)
-    
-    def copy(self) -> Self:
-        return Square(self.r, self.c)
+from containers import Square, Tile
 
 
 @dataclass
@@ -60,9 +25,11 @@ class Arrow:
 
 
 class GameState:
-    def __init__(self, grid: list[Tile] = [], turn: Tile = Tile.BLACK) -> None:
+    def __init__(self, grid: list[Tile] = [], turn: Tile = Tile.BLACK, 
+            placed: int = 4) -> None:
         self.turn = turn
         self.grid = grid[:]
+        self.placed = placed
         if not grid:
             for i in range(64):
                 tile = Tile.OPEN
@@ -74,38 +41,32 @@ class GameState:
                     tile = Tile.ADJ
                 self.grid.append(tile)
     
-    def __str__(self) -> str:
-        board = " #--------#\n"
-        for i in range(8):
-            board += f"{8-i}|"
-            board += "".join([str(t) for t in self.grid[8*i:8*i+8]])
-            board += "|\n"
-        board += " #--------#\n"
-        board += "  abcdefgh "
-        return board
-    
     def copy(self) -> Self:
-        return GameState(self.grid, self.turn)
+        return GameState(self.grid, self.turn, self.placed)
     
-    def new_adjacent(self, sq: Square) -> None:
+    def count(self) -> tuple[int]:
+        return (self.grid.count(Tile.BLACK), self.grid.count(Tile.WHITE))
+    
+    def _new_adjacent(self, sq: Square) -> None:
         for r, c in product([-1, 0, 1], repeat=2):
             d = Square(sq.r - r, sq.c - c)
-            if d.valid() and self.grid[d.num()] == Tile.OPEN:
-                self.grid[d.num()] = Tile.ADJ
+            if d.valid() and self.grid[d.idx()] == Tile.OPEN:
+                self.grid[d.idx()] = Tile.ADJ
 
     def move(self, sq: Square) -> Self | None:
         # Validate input
         try:
-            if self.grid[sq.num()] != Tile.ADJ:
+            if self.grid[sq.idx()] != Tile.ADJ:
                 return None
         except IndexError:
             print("Invalid location!")
             return None
         # Create next board state
         gs = self.copy()
-        gs.grid[sq.num()] = gs.turn
-        gs.new_adjacent(sq)
+        gs.grid[sq.idx()] = gs.turn
+        gs._new_adjacent(sq)
         gs.turn = gs.turn.other()
+        gs.placed += 1
         arrows = deque([
             Arrow(sq.copy(), Square(x, y))
             for x, y in product([-1, 0, 1], repeat=2)
@@ -119,12 +80,12 @@ class GameState:
                 if a.loc == sq:
                     # Returned to start
                     continue
-                elif gs.grid[a.loc.num()] == self.turn.other():
+                elif gs.grid[a.loc.idx()] == self.turn.other():
                     # Passthrough, flip if reversed
                     if a.flip:
-                        gs.grid[a.loc.num()] = gs.grid[a.loc.num()].other()
+                        gs.grid[a.loc.idx()] = gs.grid[a.loc.idx()].other()
                         flipped = True
-                elif gs.grid[a.loc.num()] == self.turn:
+                elif gs.grid[a.loc.idx()] == self.turn:
                     # Reflect, should only reach this at most once
                     a.bounce()
                 else:
