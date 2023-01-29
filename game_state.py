@@ -44,6 +44,9 @@ class GameState:
     def copy(self) -> Self:
         return GameState(self.grid, self.turn, self.placed)
     
+    def at(self, r: int, c: int) -> Tile:
+        return self.grid[Square(r, c).idx()]
+    
     def count(self) -> tuple[int]:
         return (self.grid.count(Tile.BLACK), self.grid.count(Tile.WHITE))
     

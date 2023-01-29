@@ -88,9 +88,8 @@ class GameManager:
         for r in range(8):
             board += f"{8-r}|"
             board += "".join([
-                '+' if (r, c) in self.moveset else str(self.gs.grid[8*r+c])
+                '+' if (r, c) in self.moveset else str(self.gs.at(r, c))
                 for c in range(8)
-                # str(t) for t in self.grid[8*i:8*i+8]
             ])
             board += "|\n"
         board += " #--------#\n"
