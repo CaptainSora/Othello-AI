@@ -1,6 +1,6 @@
 from random import shuffle
 
-from ai_agents import Agent, Player, Level0, Level1, Level2
+from ai_agents import *
 from containers import Tile
 from game_state import GameState
 
@@ -19,16 +19,20 @@ class InputManager:
                 "constructor": Player
             },
             "0": {
-                "desc": "Level 0 AI (random move)",
+                "desc": "Level 0 AI (random move) [Elo: 100]",
                 "constructor": Level0
             },
             "1": {
-                "desc": "Level 1 AI (most tiles)",
+                "desc": "Level 1 AI (most tiles) [Elo: 185]",
                 "constructor": Level1
             },
             "2": {
-                "desc": "Level 2 AI (weighted most tiles)",
+                "desc": "Level 2 AI (weighted most tiles) [Elo: 298]",
                 "constructor": Level2
+            },
+            "3": {
+                "desc": "Level 3 AI (static tile weights) [Elo: 713]",
+                "constructor": Level3
             },
         }
     
@@ -74,20 +78,20 @@ class InputManager:
 
 class GameManager:
     def __init__(self, silent: bool = False) -> None:
-        self.gs = GameState()
+        self.gs = None
         self.im = InputManager(silent)
         self.silent = silent
         self.players = {}
         self.prevskip = False
         self.active = False
         self.moveset = {}
-        self.winner = Tile.NONE
+        self.winner = None
     
     def _reset(self) -> None:
         self.gs = GameState()
         self.prevskip = False
         self.active = False
-        self.winner = Tile.NONE
+        self.winner = None
     
     def _print(self, output: str) -> None:
         if not self.silent:
@@ -136,6 +140,7 @@ class GameManager:
             self._game_end()
     
     def game_start(self, players: str = "") -> None:
+        self._reset()
         self.active = True
         self.im.welcome()
         if not players:
@@ -152,16 +157,19 @@ class GameManager:
         self._print(f"{str(Tile.WHITE)}: {white}")
         if black == white:
             self._print(f"=== The game is a draw! ===")
+            self.winner = 0
         else:
             winner = Tile.BLACK if black > white else Tile.WHITE
             self._print(
                 f"=== {str(winner)} - {self.players[winner].name()} wins! ==="
             )
+            self.winner = self.players[winner].pnum
     
     def _game_handler(self) -> None:
         while self.active:
             self._move()
 
 
-gm = GameManager()
-gm.game_start()
+if __name__ == "__main__":
+    gm = GameManager()
+    gm.game_start()
