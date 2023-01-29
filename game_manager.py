@@ -72,21 +72,7 @@ class GameManager:
         self.prevskip = False
         self.active = False
         self.moveset = {}
-    
-    def _find_legal_moves(self) -> None:
-        """
-        Generates and saves a dictionary of all legal moves for the next
-        player.
-        """
-        self.moveset.clear()
-        for r, c in product(range(8), repeat=2):
-            sq = Square(r, c)
-            if self.gs.grid[sq.idx()] != Tile.ADJ:
-                continue
-            new_gs = self.gs.move(sq)
-            if new_gs is not None:
-                self.moveset[(r, c)] = new_gs
-    
+        
     def print_board_to_console(self) -> None:
         board = " #--------#\n"
         for r in range(8):
@@ -101,7 +87,7 @@ class GameManager:
         print(board)
     
     def move(self) -> None:
-        self._find_legal_moves()
+        self.moveset = self.gs.get_legal_moves()
         self.print_board_to_console()
         turn = self.gs.turn
         print(f"{str(turn)} - {self.players[turn].name()}'s turn.")

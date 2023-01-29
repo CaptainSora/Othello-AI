@@ -50,6 +50,17 @@ class GameState:
     def count(self) -> tuple[int]:
         return (self.grid.count(Tile.BLACK), self.grid.count(Tile.WHITE))
     
+    def get_legal_moves(self) -> dict[tuple[int], Self]:
+        moveset = {}
+        for r, c in product(range(8), repeat=2):
+            sq = Square(r, c)
+            if self.grid[sq.idx()] != Tile.ADJ:
+                continue
+            new_gs = self.move(sq)
+            if new_gs is not None:
+                moveset[(r, c)] = new_gs
+        return moveset
+    
     def _new_adjacent(self, sq: Square) -> None:
         for r, c in product([-1, 0, 1], repeat=2):
             d = Square(sq.r - r, sq.c - c)
