@@ -81,6 +81,13 @@ class GameManager:
         self.prevskip = False
         self.active = False
         self.moveset = {}
+        self.winner = Tile.NONE
+    
+    def _reset(self) -> None:
+        self.gs = GameState()
+        self.prevskip = False
+        self.active = False
+        self.winner = Tile.NONE
     
     def _print(self, output: str) -> None:
         if not self.silent:
