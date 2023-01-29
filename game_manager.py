@@ -12,11 +12,9 @@ TODO:
 
 
 class InputManager:
-    def welcome(self) -> None:
-        print("Welcome to Othello.\n")
-    
-    def select_players(self) -> dict[Tile, Agent]:
-        playerdict = {
+    def __init__(self, silent: bool = False) -> None:
+        self.silent = silent
+        self.playerdict = {
             "p": {
                 "desc": "Player (via console)",
                 "constructor": Player
@@ -34,8 +32,17 @@ class InputManager:
                 "constructor": Level2
             },
         }
+    
+    def print(self, output) -> None:
+        if not self.silent:
+            print(output)
+    
+    def welcome(self) -> None:
+        self.print("Welcome to Othello.\n")
+    
+    def select_players(self) -> dict[Tile, Agent]:
         print("Who's playing?")
-        for k, v in playerdict.items():
+        for k, v in self.playerdict.items():
             print(f"  {k}: {v['desc']}")
         
         while True:
@@ -43,35 +50,42 @@ class InputManager:
             user_input = user_input.strip().replace(" ", "").lower()
             if len(user_input) != 2:
                 print("Please enter exactly two characters.")
-            elif user_input[0] not in playerdict:
+            elif user_input[0] not in self.playerdict:
                 print(f"Sorry, I couldn't recognize '{user_input[0]}'.")
-            elif user_input[1] not in playerdict:
+            elif user_input[1] not in self.playerdict:
                 print(f"Sorry, I couldn't recognize '{user_input[1]}'.")
             else:
                 break
-        
+        return self.create_players(user_input)
+    
+    def create_players(self, players: str) -> dict[Tile, Agent]:
         playerlist = [
-            playerdict[user_input[0]]['constructor'](1),
-            playerdict[user_input[1]]['constructor'](2)
+            self.playerdict[players[0]]['constructor'](1),
+            self.playerdict[players[1]]['constructor'](2)
         ]
         shuffle(playerlist)
 
         players = dict(zip([Tile.BLACK, Tile.WHITE], playerlist))
         for t, p in players.items():
             p.set_color(t)
-            print(f"{str(t)} - {p.fullname()}")
+            self.print(f"{str(t)} - {p.fullname()}")
         
         return players
 
 
 class GameManager:
-    def __init__(self) -> None:
+    def __init__(self, silent: bool = False) -> None:
         self.gs = GameState()
-        self.im = InputManager()
+        self.im = InputManager(silent)
+        self.silent = silent
         self.players = {}
         self.prevskip = False
         self.active = False
         self.moveset = {}
+    
+    def print(self, output: str) -> None:
+        if not self.silent:
+            print(output)
         
     def print_board_to_console(self) -> None:
         board = " #--------#\n"
@@ -84,16 +98,16 @@ class GameManager:
             board += "|\n"
         board += " #--------#\n"
         board += "  abcdefgh "
-        print(board)
+        self.print(board)
     
     def move(self) -> None:
         self.moveset = self.gs.get_legal_moves()
         self.print_board_to_console()
         turn = self.gs.turn
-        print(f"{str(turn)} - {self.players[turn].name()}'s turn.")
+        self.print(f"{str(turn)} - {self.players[turn].name()}'s turn.")
         # Check for legal moves
         if not self.moveset:
-            print(f"No legal moves for {str(turn)}.")
+            self.print(f"No legal moves for {str(turn)}.")
             if self.prevskip:
                 self._game_end()
             self.prevskip = True
@@ -101,7 +115,7 @@ class GameManager:
             return
         self.prevskip = False
         # Print legal moves
-        print(
+        self.print(
             "Legal moves: " + 
             ", ".join([
                 "abcdefgh"[sq[1]] + "87654321"[sq[0]]
@@ -110,7 +124,7 @@ class GameManager:
         )
         # Get agent move
         sq = self.players[turn].move(self.gs, self.moveset)
-        print(f"{self.players[turn].name()} played {sq.as_name()}.")
+        self.print(f"{self.players[turn].name()} played {sq.as_name()}.")
         self.gs = self.moveset[sq.as_tuple()]
         if self.gs.placed >= 64:
             self._game_end()
@@ -123,15 +137,15 @@ class GameManager:
     
     def _game_end(self) -> None:
         self.active = False
-        print("Game over!")
+        self.print("Game over!")
         black, white = self.gs.count()
-        print(f"{str(Tile.BLACK)}: {black}")
-        print(f"{str(Tile.WHITE)}: {white}")
+        self.print(f"{str(Tile.BLACK)}: {black}")
+        self.print(f"{str(Tile.WHITE)}: {white}")
         if black == white:
-            print(f"=== The game is a draw! ===")
+            self.print(f"=== The game is a draw! ===")
         else:
             winner = Tile.BLACK if black > white else Tile.WHITE
-            print(
+            self.print(
                 f"=== {str(winner)} - {self.players[winner].name()} wins! ==="
             )
     
