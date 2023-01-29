@@ -43,3 +43,6 @@ class Tile(Enum):
     
     def other(self) -> Self:
         return [self.OPEN, self.ADJ, self.WHITE, self.BLACK][self.value]
+    
+    def order(self) -> int:
+        return [None, None, 0, 1][self.value]

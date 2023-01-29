@@ -1,7 +1,7 @@
 from itertools import product
 from random import shuffle
 
-from ai_agents import Agent, Player, Level0
+from ai_agents import Agent, Player, Level0, Level1
 from containers import Square, Tile
 from game_state import GameState
 
@@ -25,6 +25,10 @@ class InputManager:
                 "desc": "Level 0 AI (random move)",
                 "constructor": Level0
             },
+            "1": {
+                "desc": "Level 1 AI (most tiles)",
+                "constructor": Level1
+            },
         }
         print("Who's playing?")
         for k, v in playerdict.items():
@@ -47,8 +51,10 @@ class InputManager:
             playerdict[user_input[1]]['constructor'](2)
         ]
         shuffle(playerlist)
+
         players = dict(zip([Tile.BLACK, Tile.WHITE], playerlist))
         for t, p in players.items():
+            p.set_color(t)
             print(f"{str(t)} - {p.fullname()}")
         
         return players
@@ -63,7 +69,7 @@ class GameManager:
         self.active = False
         self.moveset = {}
     
-    def _find_legal_moves(self):
+    def _find_legal_moves(self) -> None:
         """
         Generates and saves a dictionary of all legal moves for the next
         player.
@@ -77,7 +83,7 @@ class GameManager:
             if new_gs is not None:
                 self.moveset[(r, c)] = new_gs
     
-    def print_board_to_console(self):
+    def print_board_to_console(self) -> None:
         board = " #--------#\n"
         for r in range(8):
             board += f"{8-r}|"
@@ -91,7 +97,7 @@ class GameManager:
         board += "  abcdefgh "
         print(board)
     
-    def move(self):
+    def move(self) -> None:
         self._find_legal_moves()
         self.print_board_to_console()
         turn = self.gs.turn
@@ -102,6 +108,7 @@ class GameManager:
             if self.prevskip:
                 self._game_end()
             self.prevskip = True
+            self.gs.turn = self.gs.turn.other()
             return
         self.prevskip = False
         # Print legal moves
@@ -113,19 +120,19 @@ class GameManager:
             ])
         )
         # Get agent move
-        sq = self.players[turn].move(self.moveset)
+        sq = self.players[turn].move(self.gs, self.moveset)
         print(f"{self.players[turn].name()} played {sq.as_name()}.")
         self.gs = self.moveset[sq.as_tuple()]
         if self.gs.placed >= 64:
             self._game_end()
     
-    def game_start(self):
+    def game_start(self) -> None:
         self.active = True
         self.im.welcome()
         self.players = self.im.select_players()
         self._game_handler()
     
-    def _game_end(self):
+    def _game_end(self) -> None:
         self.active = False
         print("Game over!")
         black, white = self.gs.count()
@@ -139,7 +146,7 @@ class GameManager:
                 f"=== {str(winner)} - {self.players[winner].name()} wins! ==="
             )
     
-    def _game_handler(self):
+    def _game_handler(self) -> None:
         while self.active:
             self.move()
 
