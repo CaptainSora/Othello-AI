@@ -1,8 +1,7 @@
-from itertools import product
 from random import shuffle
 
 from ai_agents import Agent, Player, Level0, Level1, Level2
-from containers import Square, Tile
+from containers import Tile
 from game_state import GameState
 
 
@@ -33,12 +32,12 @@ class InputManager:
             },
         }
     
-    def print(self, output) -> None:
+    def _print(self, output) -> None:
         if not self.silent:
             print(output)
     
     def welcome(self) -> None:
-        self.print("Welcome to Othello.\n")
+        self._print("Welcome to Othello.\n")
     
     def select_players(self) -> dict[Tile, Agent]:
         print("Who's playing?")
@@ -68,7 +67,7 @@ class InputManager:
         players = dict(zip([Tile.BLACK, Tile.WHITE], playerlist))
         for t, p in players.items():
             p.set_color(t)
-            self.print(f"{str(t)} - {p.fullname()}")
+            self._print(f"{str(t)} - {p.fullname()}")
         
         return players
 
@@ -83,11 +82,11 @@ class GameManager:
         self.active = False
         self.moveset = {}
     
-    def print(self, output: str) -> None:
+    def _print(self, output: str) -> None:
         if not self.silent:
             print(output)
         
-    def print_board_to_console(self) -> None:
+    def _print_board_to_console(self) -> None:
         board = " #--------#\n"
         for r in range(8):
             board += f"{8-r}|"
@@ -98,16 +97,16 @@ class GameManager:
             board += "|\n"
         board += " #--------#\n"
         board += "  abcdefgh "
-        self.print(board)
+        self._print(board)
     
-    def move(self) -> None:
+    def _move(self) -> None:
         self.moveset = self.gs.get_legal_moves()
-        self.print_board_to_console()
+        self._print_board_to_console()
         turn = self.gs.turn
-        self.print(f"{str(turn)} - {self.players[turn].name()}'s turn.")
+        self._print(f"{str(turn)} - {self.players[turn].name()}'s turn.")
         # Check for legal moves
         if not self.moveset:
-            self.print(f"No legal moves for {str(turn)}.")
+            self._print(f"No legal moves for {str(turn)}.")
             if self.prevskip:
                 self._game_end()
             self.prevskip = True
@@ -115,7 +114,7 @@ class GameManager:
             return
         self.prevskip = False
         # Print legal moves
-        self.print(
+        self._print(
             "Legal moves: " + 
             ", ".join([
                 "abcdefgh"[sq[1]] + "87654321"[sq[0]]
@@ -124,34 +123,37 @@ class GameManager:
         )
         # Get agent move
         sq = self.players[turn].move(self.gs, self.moveset)
-        self.print(f"{self.players[turn].name()} played {sq.as_name()}.")
+        self._print(f"{self.players[turn].name()} played {sq.as_name()}.")
         self.gs = self.moveset[sq.as_tuple()]
         if self.gs.placed >= 64:
             self._game_end()
     
-    def game_start(self) -> None:
+    def game_start(self, players: str = "") -> None:
         self.active = True
         self.im.welcome()
-        self.players = self.im.select_players()
+        if not players:
+            self.players = self.im.select_players()
+        else:
+            self.players = self.im.create_players(players)
         self._game_handler()
     
     def _game_end(self) -> None:
         self.active = False
-        self.print("Game over!")
+        self._print("Game over!")
         black, white = self.gs.count()
-        self.print(f"{str(Tile.BLACK)}: {black}")
-        self.print(f"{str(Tile.WHITE)}: {white}")
+        self._print(f"{str(Tile.BLACK)}: {black}")
+        self._print(f"{str(Tile.WHITE)}: {white}")
         if black == white:
-            self.print(f"=== The game is a draw! ===")
+            self._print(f"=== The game is a draw! ===")
         else:
             winner = Tile.BLACK if black > white else Tile.WHITE
-            self.print(
+            self._print(
                 f"=== {str(winner)} - {self.players[winner].name()} wins! ==="
             )
     
     def _game_handler(self) -> None:
         while self.active:
-            self.move()
+            self._move()
 
 
 gm = GameManager()

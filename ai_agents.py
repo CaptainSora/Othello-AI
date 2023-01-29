@@ -11,7 +11,7 @@ class Agent:
         self.pnum = playernumber
         self.agentname = agentname
         self.agenttype = agenttype
-        self.color = Tile.OPEN
+        self.color = Tile.NONE
     
     def name(self) -> str:
         return self.agentname
@@ -22,10 +22,10 @@ class Agent:
     def set_color(self, tile) -> None:
         self.color = tile
 
-    def order(self) -> int:
+    def _order(self) -> int:
         return self.color.order()
     
-    def score(self, gamestate: GameState) -> int:
+    def _score(self, gamestate: GameState) -> int:
         return 0
 
     # Must be overridden
@@ -71,7 +71,7 @@ class Level1(Agent):
     
     def move(self, gamestate, moveset):
         scores = [
-            [gs.count()[self.order()], sq]
+            [gs.count()[self._order()], sq]
             for sq, gs in moveset.items()
         ]
         scores.sort(reverse=True)
@@ -82,7 +82,7 @@ class Level2(Agent):
     def __init__(self, playernumber):
         super().__init__(playernumber, "Sudowoodo", "Level 2 AI")
     
-    def score(self, gamestate):
+    def _score(self, gamestate):
         # Center, Edge, Corner
         multiplier = [1, 2, 4]
         total = 0
@@ -94,7 +94,7 @@ class Level2(Agent):
 
     def move(self, gamestate, moveset):
         scores = [
-            [self.score(gs), sq]
+            [self._score(gs), sq]
             for sq, gs in moveset.items()
         ]
         scores.sort(reverse=True)

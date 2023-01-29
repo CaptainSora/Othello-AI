@@ -33,7 +33,7 @@ class Square:
 
 
 class Tile(Enum):
-    OPEN = 0
+    NONE = 0
     ADJ = 1
     BLACK = 2
     WHITE = 3
@@ -42,7 +42,7 @@ class Tile(Enum):
         return " ·OX"[self.value]
     
     def other(self) -> Self:
-        return [self.OPEN, self.ADJ, self.WHITE, self.BLACK][self.value]
+        return [self.NONE, self.ADJ, self.WHITE, self.BLACK][self.value]
     
     def order(self) -> int:
         return [None, None, 0, 1][self.value]

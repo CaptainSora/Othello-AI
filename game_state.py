@@ -32,7 +32,7 @@ class GameState:
         self.placed = placed
         if not grid:
             for i in range(64):
-                tile = Tile.OPEN
+                tile = Tile.NONE
                 if i in [27, 36]:
                     tile = Tile.WHITE
                 elif i in [28, 35]:
@@ -64,7 +64,7 @@ class GameState:
     def _new_adjacent(self, sq: Square) -> None:
         for r, c in product([-1, 0, 1], repeat=2):
             d = Square(sq.r - r, sq.c - c)
-            if d.valid() and self.grid[d.idx()] == Tile.OPEN:
+            if d.valid() and self.grid[d.idx()] == Tile.NONE:
                 self.grid[d.idx()] = Tile.ADJ
 
     def move(self, sq: Square) -> Self | None:
